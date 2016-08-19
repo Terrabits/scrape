@@ -1,12 +1,11 @@
 #!/usr/bin/env ruby
 
-require './scraper.rb'
-require 'HTTParty'
-require 'Nokogiri'
+dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+require File.join(dir, 'scraper')
+
 require 'Pry'
 
-class TripIt < Scraper
-
+class TripIt < Scraper::Base
   def login(password)
     body = login_inputs
     body[:login_email_address] = @email
@@ -44,5 +43,11 @@ class TripIt < Scraper
   end
 end
 
-# tripit = TripIt.new('email','password', debug=false)
+# tripit = TripIt.new('email', debug=false)
+# tripit.login('password')
+# tripit.logged_in? => true
+# tripit.trips => [..]
+# tripit.logout
+# tripit.login('password')
+# tripit.logged_in? => false
 Pry.start(binding)
