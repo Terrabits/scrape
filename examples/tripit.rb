@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby
 
-dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
-require File.join(dir, 'scraper')
-
+require 'bundler/setup'
+require 'scraper'
 require 'Pry'
 
 class TripIt < Scraper::Base
