@@ -4,33 +4,55 @@ require 'HTTParty'
 require 'Nokogiri'
 require 'Pry'
 
+class HtmlParserIncluded < HTTParty::Parser
+  def html
+    Nokogiri::HTML(body)
+  end
+end
+
 class TripIt
   include HTTParty
   base_uri 'https://www.tripit.com'
   follow_redirects false
-  # debug_output
+  parser HtmlParserIncluded # Nokogiri response mixin
+
+  attr_accessor :email
 
   def initialize(email, password, debug_output=false)
     @email = email
     @cookies = {}
+    self.debug_output if debug_output
 
-    HTTParty.debug_output if debug_output
+    login(password)
+  end
 
-    # Post login
+  def debug_output(on=true)
+    if on
+      self.class.debug_output
+    else
+      self.class.debug_output nil
+    end
+  end
+
+  def login(password)
     body = login_inputs
-    body[:login_email_address] = email
+    body[:login_email_address] = @email
     body[:login_password     ] = password
     post('/account/login', body)
   end
 
+  def logout
+    @cookies = Hash.new
+  end
+
   def logged_in?
-    account_settings.include? "You're logged in as #{@email}"
+    account_settings.body.include? "You're logged in as #{@email}"
   end
 
   def trips
     response = get('/trips')
-    trips_html = Nokogiri::HTML(response.body)
-    trips_html.css('.container .trip-display .display-name').map(&:text)
+    # trips_html = Nokogiri::HTML(response.body)
+    trips_html = response.css('.container .trip-display .display-name').map(&:text)
   end
 
   def get(url)
@@ -81,8 +103,8 @@ class TripIt
 
   def login_inputs
     response     = get('/account/login')
-    html         = Nokogiri::HTML(response.body)
-    input_fields = html.css('.container').css('#authenticate').css('input')
+    # html         = Nokogiri::HTML(response.body)
+    input_fields = response.css('.container #authenticate input')
     inputs_hash  = Hash.new
     input_fields.each do |i|
       name       = i["name"].to_sym
