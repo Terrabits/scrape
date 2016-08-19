@@ -1,5 +1,6 @@
 require "scraper/version"
+require "scraper/base"
 
 module Scraper
-  require "scraper/base"
+  # My code goes here...
 end
