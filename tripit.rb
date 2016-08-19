@@ -10,31 +10,17 @@ class TripIt
   follow_redirects false
   # debug_output
 
-  def initialize(email, password)
+  def initialize(email, password, debug_output=false)
     @email = email
     @cookies = {}
 
-    # Get login
-    get_response = self.class.get('/account/login')
-    update_cookies(get_response.headers['Set-Cookie'])
-    get_html = Nokogiri::HTML(get_response.body)
-    auth_inputs   = get_html.css('.container').css('#authenticate').css('input')
+    HTTParty.debug_output if debug_output
 
     # Post login
-    body = {}
-    auth_inputs.each do |i|
-      name       = i["name"].to_sym
-      value      = i["value"]
-      body[name] = value
-    end
+    body = login_inputs
     body[:login_email_address] = email
     body[:login_password     ] = password
-    post_response = self.class.post(
-      '/account/login',
-      body: body,
-      headers: {'Cookie' => cookie_string }
-    )
-    update_cookies(post_response.headers['Set-Cookie'])
+    post('/account/login', body)
   end
 
   def logged_in?
@@ -42,53 +28,71 @@ class TripIt
   end
 
   def trips
-    response = self.class.get('/trips', headers: {'Cookie' => cookie_string})
-    update_cookies(response.headers['Set-Cookie'])
+    response = get('/trips')
     trips_html = Nokogiri::HTML(response.body)
     trips_html.css('.container .trip-display .display-name').map(&:text)
+  end
+
+  def get(url)
+    response = self.class.get(url, headers: headers)
+    update_cookies(response)
+    response
+  end
+
+  def post(url, body)
+    response = self.class.post(url, body: body, headers: headers)
+    update_cookies(response)
+    response
   end
 
   private
 
   def account_settings
-    response = self.class.get('/account/edit', headers: {'Cookie' => cookie_string})
-    update_cookies(response.headers['Set-Cookie'])
-    response
+    get('/account/edit')
   end
 
-  def update_cookies(resp)
-    it_ref_id  = /it_ref_id=\w+;/ .match(resp).to_s[0..-2].split('=')[1]
-    it_csrf    = /it_csrf=\w+;/   .match(resp).to_s[0..-2].split('=')[1]
-    lbsession  = /lbsession=.+=;/ .match(resp).to_s[0..-2].split('=')[1]
-    session_id = /session_id=\w+;/.match(resp).to_s[0..-2].split('=')[1]
-    it_session_id = /it_session_id=.+; /.match(resp).to_s[0..-2].split('=')[1]
-
-    if it_ref_id
-      @cookies[:it_ref_id] = it_ref_id
-    end
-    if it_csrf
-      @cookies[:it_csrf] = it_csrf
-    end
-    if lbsession
-      lbsession += "="
-      @cookies[:lbsession] = lbsession
-    end
-    if session_id
-      @cookies[:session_id] = session_id
-    end
-    if it_session_id
-      @cookies[:it_session_id] = it_session_id
+  def update_cookies(response)
+    fields = response.headers.get_fields('Set-Cookie')
+    return if !fields
+    fields.each do |f|
+      text  = /\w+=[^;]+;/.match(f).to_s[0..-2]
+      eq    = text.index('=')
+      name  = text[0..eq-1].to_sym
+      value = text[eq+1..-1]
+      @cookies[name] = value
     end
   end
 
   def cookie_string
-    strings = []
-    @cookies.each do |key, value|
-      strings << "#{key.to_s}=#{value}"
+    c_hash = CookieHash.new
+    @cookies.each do |name, value|
+      c_hash.add_cookies("#{name.to_s}=#{value}")
     end
-    strings.join("; ")
+    c_hash.to_cookie_string
   end
+
+  def headers
+    if !@cookies.empty?
+      {'Cookie' => cookie_string}
+    else
+      {}
+    end
+  end
+
+  def login_inputs
+    response     = get('/account/login')
+    html         = Nokogiri::HTML(response.body)
+    input_fields = html.css('.container').css('#authenticate').css('input')
+    inputs_hash  = Hash.new
+    input_fields.each do |i|
+      name       = i["name"].to_sym
+      value      = i["value"]
+      inputs_hash[name] = value
+    end
+    inputs_hash
+  end
+
 end
 
-tripit = TripIt.new('nick.lalic@gmail.com','')
+# tripit = TripIt.new('email','password', debug=false)
 Pry.start(binding)
