@@ -18,7 +18,6 @@ class TripIt < Scraper::Base
 
   def trips
     response = get('/trips')
-    # trips_html = Nokogiri::HTML(response.body)
     trips_html = response.css('.container .trip-display .display-name').map(&:text)
   end
 
@@ -30,7 +29,6 @@ class TripIt < Scraper::Base
 
   def login_inputs
     response     = get('/account/login')
-    # html         = Nokogiri::HTML(response.body)
     input_fields = response.css('.container #authenticate input')
     inputs_hash  = Hash.new
     input_fields.each do |i|

@@ -1,8 +1,8 @@
 # Scraper
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/scraper`. To experiment with that code, run `bin/console` for an interactive prompt.
+Scraper provides a base class with http methods that automatically manage cookies. This is convenient for scraping webpages that you have to login to access.
 
-TODO: Delete this and the text above, and describe your gem
+Scraper uses HTTParty for HTTP requests. Nokogiri is used to scrape responses.
 
 ## Installation
 
@@ -22,7 +22,55 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+To use scrape, create a subclass of `Scrape::Base`. This subclass will automatically update and submit your cookies, which makes logging in as simple as submitting the login form.
+
+See `examples/tripit.rb` for a simple example:
+
+```ruby
+class TripIt < Scraper::Base
+  def login(password)
+    body = login_inputs
+    body[:login_email_address] = @email
+    body[:login_password     ] = password
+    post('/account/login', body)
+  end
+
+  def logged_in?
+    account_settings.body.include? "You're logged in as #{@email}"
+  end
+
+  def trips
+    response = get('/trips')
+    trips_html = response.css('.container .trip-display .display-name').map(&:text)
+  end
+
+  private
+
+  def account_settings
+    get('/account/edit')
+  end
+
+  def login_inputs
+    response     = get('/account/login')
+    input_fields = response.css('.container #authenticate input')
+    inputs_hash  = Hash.new
+    input_fields.each do |i|
+      name       = i["name"].to_sym
+      value      = i["value"]
+      inputs_hash[name] = value
+    end
+    inputs_hash
+  end
+end
+
+# tripit = TripIt.new('email', debug=false)
+# tripit.login('password')
+# tripit.logged_in? => true
+# tripit.trips => [..]
+# tripit.logout
+# tripit.login('password')
+# tripit.logged_in? => false
+```
 
 ## Development
 
@@ -38,4 +86,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/[USERN
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
