@@ -8,8 +8,17 @@ Scraper uses HTTParty for HTTP requests. Nokogiri is used to scrape responses.
 
 ## Installation
 
-To install Scrape from source:
-`To be continued...`
+To install Scraper via gem install:  
+```bash
+git clone git@github.com:Terrabits/scraper.git
+cd scraper
+gem build scraper.gemspec
+gem install scraper-0.1.0.gem
+```
+
+
+To add Scraper to a Gemfile from github source:
+`gem 'scrape', :git => 'git://github.com/Terrabits/scraper.git'`
 
 ## Usage
 
