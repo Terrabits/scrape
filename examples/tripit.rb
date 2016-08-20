@@ -7,13 +7,14 @@ require 'Pry'
 class TripIt < Scraper::Base
   def login(password)
     body = login_inputs
-    body[:login_email_address] = @email
+    body[:login_email_address] = @username
     body[:login_password     ] = password
     post('/account/login', body)
+    logged_in?
   end
 
   def logged_in?
-    account_settings.body.include? "You're logged in as #{@email}"
+    account_settings.body.include? "You're logged in as #{@username}"
   end
 
   def trips
@@ -40,11 +41,11 @@ class TripIt < Scraper::Base
   end
 end
 
-# tripit = TripIt.new('email', debug=false)
-# tripit.login('password')
-# tripit.logged_in? => true
-# tripit.trips => [..]
+# tripit = TripIt.new
+# tripit.username = 'email@example.com'
+# tripit.login('password') => true
+# tripit.logged_in?        => true
+# tripit.trips             => [..]
 # tripit.logout
-# tripit.login('password')
-# tripit.logged_in? => false
+# tripit.logged_in?        => false
 Pry.start(binding)

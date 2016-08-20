@@ -15,10 +15,10 @@ module Scraper
     follow_redirects false
     parser HtmlParser # Nokogiri response mixin
 
-    attr_accessor :email
+    attr_accessor :username
 
-    def initialize(email='', debug_output=false)
-      @email = email
+    def initialize(username='', debug_output=false)
+      @username = username
       @cookies = {}
       self.debug_output if debug_output
     end
@@ -68,7 +68,7 @@ module Scraper
       end
       c_hash.to_cookie_string
     end
-    
+
     def headers
       if !@cookies.empty?
         {'Cookie' => cookie_string}
