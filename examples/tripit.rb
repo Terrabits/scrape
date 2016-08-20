@@ -5,6 +5,8 @@ require 'scraper'
 require 'Pry'
 
 class TripIt < Scraper::Base
+  base_uri 'https://www.tripit.com'
+
   def login(password)
     body = login_inputs
     body[:login_email_address] = @username

@@ -11,7 +11,6 @@ module Scraper
 
   class Base < HTTParty::Parser
     include HTTParty
-    base_uri 'https://www.tripit.com'
     follow_redirects false
     parser HtmlParser # Nokogiri response mixin
 
