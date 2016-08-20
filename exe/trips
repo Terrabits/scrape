@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'scraper/../examples/tripit'
+require 'scraper'
 
 class TripIt < Scraper::Base
   base_uri 'https://www.tripit.com'
