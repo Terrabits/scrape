@@ -50,4 +50,3 @@ end
 # tripit.trips             => [..]
 # tripit.logout
 # tripit.logged_in?        => false
-Pry.start(binding)
