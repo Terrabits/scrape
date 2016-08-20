@@ -1,6 +1,4 @@
-#!/usr/bin/env ruby
 
-require 'bundler/setup'
 require 'scraper'
 require 'Pry'
 
